@@ -1,0 +1,195 @@
+<!doctype html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @keyframes spin {
+            from {
+                transform: rotate(0deg);
+            }
+
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .spin-die {
+            animation-name: spin;
+            animation-duration: .125s;
+            animation-iteration-count: 45;
+        }
+
+        #dice-body {
+            width: 100px;
+            height: 100px;
+            background-color: rgba(255, 210, 9, 0.904);
+            border: 2px solid rgb(253, 250, 250);
+            border-radius: 10px;
+            box-shadow: 1px 1px 30px black;
+            display: grid;
+            grid-template: repeat(3, 1fr) / repeat(3, 1fr);
+            grid-template-areas:
+                "tl tc tr"
+                "cl cc cr"
+                "bl bc br";
+            justify-items: center;
+            align-items: center;
+        }
+
+        .dot {
+            width: 20px;
+            height: 20px;
+            padding: 5px;
+            border-radius: 100%;
+            background-color: rgb(29, 29, 29);
+            display: none;
+        }
+
+        .show {
+            display: block;
+        }
+
+        #tl {
+            grid-area: tl;
+        }
+
+        #tc {
+            grid-area: tc;
+        }
+
+        #tr {
+            grid-area: tr;
+        }
+
+        #cl {
+            grid-area: cl;
+        }
+
+        #cc {
+            grid-area: cc;
+        }
+
+        #cr {
+            grid-area: cr;
+        }
+
+        #bl {
+            grid-area: bl;
+        }
+
+        #bc {
+            grid-area: bc;
+        }
+
+        #br {
+            grid-area: br;
+        }
+    </style>
+
+</head>
+
+<body>
+    <div class="min-h-screen bg-gradient-to-r from-purple-500 to-pink-500 py-6 flex flex-col justify-center relative overflow-hidden sm:py-12">
+        <main id="dice-body" style="margin-left:auto; margin-right:auto; margin: botton 5px;">
+            <div id="tl" class="dot"></div>
+            <div id="tc" class="dot"></div>
+            <div id="tr" class="dot"></div>
+            <div id="cl" class="dot"></div>
+            <div id="cc" class="dot show"></div>
+            <div id="cr" class="dot"></div>
+            <div id="bl" class="dot"></div>
+            <div id="bc" class="dot"></div>
+            <div id="br" class="dot"></div>
+        </main>
+        <div class="flex min-h-screen items-center justify-center">
+            <div x-data="{ tooltip: false }" class="relative z-30 inline-flex">
+                <div id="roll-btn"
+                    class="rounded-md px-6 py-4 bg-gradient-to-r from-cyan-500 to-blue-500 text-white cursor-pointer shadow transition ease-in-out delay-150 bg-blue-500 hover:-translate-y-1 hover:rotate-45 hover:scale-210 hover:bg-indigo-800 duration-300 origin-top-left">
+                    Play Game
+                </div>
+            </div>
+        </div>
+    </div>
+    <script type="text/javascript">
+        const dicebody = document.querySelector('#dice-body');
+        const rollBtn = document.querySelector('#roll-btn');
+
+        // cc = center-center; tl = top-left; br = bottom-right; etc.
+        const combinations = [
+            { 1: ["cc"] },
+            { 2: ["tl", "br"] },
+            { 3: ["tl", "cc", "br"] },
+            { 4: ["tl", "tr", "bl", "br"] },
+            { 5: ["tl", "tr", "cc", "bl", "br"] },
+            { 6: ["tl", "tr", "cl", "cr", "bl", "br"] },
+        ]
+
+        const eraseDots = (number) => {
+            // iterate over combinations array to remove numbers
+            combinations[number - 1][number].forEach(set => {
+                // add class 'show'
+                document.getElementById(`${set}`).classList.remove('show');
+            });
+        }
+
+        const makeDots = (number) => {
+            // Spin animation
+            dicebody.classList.add('spin-die');
+            // iterate over combinations array to show numbers
+            combinations[number - 1][number].forEach(set => {
+                // add class 'show'
+                document.getElementById(`${set}`).classList.add('show');
+            });
+        }
+
+        // The is the argument for the rollDie function
+        const randomRollAmount = () => {
+            let rollAmount = Math.floor((Math.random() * 30) + 15);
+            return rollAmount;
+        }
+
+        // The end result is simply a random number picked between 1 and 6
+        const randomRollResult = () => {
+            let rollResult = Math.floor(Math.random() * 6 + 1);
+            return rollResult;
+        }
+
+        // This adds a setInterval to make the dots on the die
+        const rollDie = (numberOfRolls) => {
+            let counter = 1;
+            let number = 1;
+            const rollState = () => {
+                // when to stop the roll
+                if (counter >= numberOfRolls) {
+                    clearInterval(rolling);
+                    // The result on die
+                    makeDots(randomRollResult());
+                    // remove CSS animation spin effect
+                    dicebody.classList.remove('spin-die');
+                } else {
+                    // rolls the die by quickly displaying then hiding them
+                    makeDots(number);
+                    setTimeout(eraseDots, 80, number);
+                    // incrementer values for setInterval
+                    counter += 1;
+                    // which dots to show on die for 1 to 6
+                    number += 1;
+                    // Keep looping the values from 1 to 6
+                    if (number > 6) {
+                        number = 1;
+                    }
+                }
+            }
+            const rolling = setInterval(rollState, 125);
+        }
+
+        // Allows button to start die roll
+        rollBtn.addEventListener('click', () => rollDie(randomRollAmount()));
+
+    </script>
+</body>
+
+</html>
